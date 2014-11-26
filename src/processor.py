@@ -186,6 +186,8 @@ class XRDstreamProcessor(Processor):
             if (o_OPS.write != 0):
                 values['write_sigma'] = sqrt((o_SSQ.write - o_XFR.write ** 2 * 1.0 / o_OPS.write) / o_OPS.write)
         values['end_time'] = struct.unpack('>i', data[16:20])[0]
+        values['read_bytes_at_close'] = values['read_bytes']
+        values['write_bytes_at_close'] = values['write_bytes']
         self.__updateMessageValue(header_CLS.fileID, values)
         self.finalizeMessage(header_CLS.fileID)
         return current_byte

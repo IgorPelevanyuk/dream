@@ -24,26 +24,26 @@ class XRDStreamUDPListener():
         self.reactor = PickleReactor("msg.dat")
 
     def run (self):
-        ticker = 0
-        while ticker >= 0:
-            ticker += 1
-            inputready, outputready, exceptready = select([self.sock], [], [])
-            for sock_inst in inputready:
-                if sock_inst == self.sock:
-                    data, addr = sock_inst.recvfrom(int(10000))
-                if data:
-                    self.__assignData(data, addr[0])
-            log.info(ticker)
-        self.sock.close()
-        log.info('exit XRDStreamUDPListener')
+        # ticker = 0
+        # while ticker >= 0:
+        #     ticker += 1
+        #     inputready, outputready, exceptready = select([self.sock], [], [])
+        #     for sock_inst in inputready:
+        #         if sock_inst == self.sock:
+        #             data, addr = sock_inst.recvfrom(int(10000))
+        #         if data:
+        #             self.__assignData(data, addr[0])
+        #     log.info(ticker)
+        # self.sock.close()
+        # log.info('exit XRDStreamUDPListener')
 
         import pickle
-        data = pickle.load(file('day.dat', 'r'))
+        data = pickle.load(file('pcap.dat', 'r'))
         counter = 1
         for packet in data:
             counter += 1
-#            if getDomain(packet[1])=='nipne.ro':
-            self.__assignData(packet[2], packet[1])
+            if getDomain(packet[1])=='icepp.jp':
+                self.__assignData(packet[2], packet[1])
             if counter % 1000 == 0:
                 print counter
         self.reactor.finalize()
