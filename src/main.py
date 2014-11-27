@@ -19,9 +19,11 @@ port = int(5163)
 class XRDStreamUDPListener():
     def __init__(self, domain, port):
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self.sock.bind((domain, port))
+        #self.sock.bind((domain, port))
         self.processors = {}
-        self.reactor = PickleReactor("msg.dat")
+        #self.reactor = PickleReactor("msg.dat")
+        self.reactor = FileReactor("msg.json")
+
 
     def run (self):
         # ticker = 0
