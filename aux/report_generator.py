@@ -55,7 +55,12 @@ parser = argparse.ArgumentParser()
 parser.add_argument("file", help="File name of dump")
 args = parser.parse_args()
 
-data = pickle.load(open(args.file))
+data = 0
+if '.json' in args.file:
+    import json
+    data = json.load(open(args.file))
+else:
+    data = pickle.load(open(args.file))
 print '======================================================='
 printout("Total Packages: ", YELLOW)
 printout(str(len(data)), YELLOW)
