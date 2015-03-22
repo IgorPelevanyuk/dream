@@ -1,7 +1,8 @@
 from scapy.all import *
+import pickle
 
-SRC_FILE = "eu_fax_frags.cap"
-DST_FILE = "pcap.dat"
+SRC_FILE = "/root/eu_fax_frags.cap"
+DST_FILE = "/root/pcap"
 
 def putToResults(pck_id):
     seq = sorted(toProcess[pck_id], key = lambda pck: pck.frag)
@@ -16,10 +17,10 @@ toPickle = []
 
 pcap_file = rdpcap(SRC_FILE)
 count = 0
+glued = 0
+file_index = 0
 for pck in pcap_file:
     count += 1
-    if count % 1000 == 0:
-        print count
     pck_id = str(pck.id)+str(pck.sprintf("%IP.src%"))
     if pck.flags == 1 and pck.frag == 0L:
         toProcess[pck_id] = [pck]
@@ -30,10 +31,19 @@ for pck in pcap_file:
     if pck.flags == 0 and pck_id in toProcess:
         toProcess[pck_id].append(pck)
         putToResults(pck_id)
+        glued += 1
         continue
     if pck.flags == 2:
         toPickle.append((pck.time, pck.sprintf("%IP.src%"), pck.load))
+    if count % 10000 == 0:
+        print count, ': toPickle ', len(toPickle),'; glued:', glued
+        if len(toPickle) > 249999:
+            pickle.dump(toPickle, open(DST_FILE+str(file_index)+'.dat', 'w'))
+            print 'File pickled'
+            file_index += 1
+            toPickle = []
+  
 print 'ToProcess len: ', len(toProcess)
+pickle.dump(toPickle, open(DST_FILE+str(file_index)+'.dat', 'w'))
 
-import pickle
-pickle.dump(toPickle, open(DST_FILE, 'w'))
+print 'task done'
