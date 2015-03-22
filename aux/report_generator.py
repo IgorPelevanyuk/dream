@@ -5,6 +5,8 @@ import argparse
 import sys
 import time
 
+AMOUNT_OF_PACKS = 13
+
 BLACK, RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, WHITE = range(8)
 
 #following from Python cookbook, #475186
@@ -55,12 +57,15 @@ parser = argparse.ArgumentParser()
 parser.add_argument("file", help="File name of dump")
 args = parser.parse_args()
 
-data = 0
+data = []
 if '.json' in args.file:
     import json
     data = json.load(open(args.file))
 else:
-    data = pickle.load(open(args.file))
+    for i in range(0,AMOUNT_OF_PACKS):
+        data+= pickle.load(open(args.file+str(i)+'.dat'))
+	print i, 'st file loaded: ', len(data)
+#    data = pickle.load(open(args.file))
 print '======================================================='
 printout("Total Packages: ", YELLOW)
 printout(str(len(data)), YELLOW)
