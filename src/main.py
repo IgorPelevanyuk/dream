@@ -21,8 +21,8 @@ class XRDStreamUDPListener():
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         #self.sock.bind((domain, port))
         self.processors = {}
-        #self.reactor = PickleReactor("msg.dat")
-        self.reactor = FileReactor("msg.json")
+        self.reactor = PickleReactor("pro_Dec01.dat")
+        #self.reactor = FileReactor("msg.json")
 
 
     def run (self):
@@ -40,12 +40,13 @@ class XRDStreamUDPListener():
         # log.info('exit XRDStreamUDPListener')
 
         import pickle
-        data = pickle.load(file('pcap.dat', 'r'))
+        data = pickle.load(file('/root/days/Dec01.dat', 'r'))
         counter = 1
         for packet in data:
             counter += 1
-            if getDomain(packet[1])=='icepp.jp':
-                self.__assignData(packet[2], packet[1])
+            #if getDomain(packet[1])=='icepp.jp':
+            #    self.__assignData(packet[2], packet[1])
+            self.__assignData(packet[2], packet[1])
             if counter % 1000 == 0:
                 print counter
         self.reactor.finalize()
