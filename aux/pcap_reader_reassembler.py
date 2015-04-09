@@ -1,8 +1,11 @@
 from scapy.all import *
 import pickle
+import argparse
 
-SRC_FILE = "/root/fax_eu_dump_II.cap"
-DST_FILE = "/root/pcap"
+parser = argparse.ArgumentParser()
+parser.add_argument("src_file", help="Pcap file name")
+parser.add_argument("dst_template", help="Desired destination")
+args = parser.parse_args()
 
 def putToResults(pck_id):
     seq = sorted(toProcess[pck_id], key = lambda pck: pck.frag)
@@ -15,7 +18,7 @@ def putToResults(pck_id):
 toProcess = {}
 toPickle = []
 
-pcap_file = rdpcap(SRC_FILE)
+pcap_file = rdpcap(args.src_file)
 count = 0
 glued = 0
 file_index = 0
@@ -38,12 +41,12 @@ for pck in pcap_file:
     if count % 10000 == 0:
         print count, ': toPickle ', len(toPickle),'; glued:', glued
         if len(toPickle) > 249999:
-            pickle.dump(toPickle, open(DST_FILE+str(file_index)+'.dat', 'w'))
+            pickle.dump(toPickle, open(args.dst_template + str(file_index) + '.dat', 'w'))
             print 'File pickled'
             file_index += 1
             toPickle = []
   
 print 'ToProcess len: ', len(toProcess)
-pickle.dump(toPickle, open(DST_FILE+str(file_index)+'.dat', 'w'))
+pickle.dump(toPickle, open( args.dst_template + str(file_index)+'.dat', 'w'))
 
 print 'task done'
