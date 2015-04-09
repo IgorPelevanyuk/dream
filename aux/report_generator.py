@@ -4,8 +4,9 @@ from pprint import pprint as pp
 import argparse
 import sys
 import time
+import operator
 
-AMOUNT_OF_PACKS = 13
+AMOUNT_OF_PACKS = 38 
 
 BLACK, RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, WHITE = range(8)
 
@@ -52,27 +53,73 @@ def pretty_print_distr(distr):
         else:
             printout(domain + ': ' + str(distr[domain]), RED)
         print
+        print_rate_report(domain)
+
+rates = {}
+
+def add_to_rates(pck, domain):
+    if domain not in rates:
+        rates[domain] = {'cur_sec': int(pck[0]), 'cur_size':len(pck[2]), 'cur_count':1, 'count':0, 'rate':{}}
+        return
+    if int(pck[0]) == rates[domain]['cur_sec']:
+        rates[domain]['cur_count'] += 1
+        rates[domain]['cur_size'] += len(pck[2])
+    else:
+        rates[domain]['rate'][ rates[domain]['cur_sec'] ] = [ rates[domain]['cur_count'] , rates[domain]['cur_size']]
+        rates[domain]['count'] += rates[domain]['cur_count']
+        rates[domain]['cur_sec'] = int(pck[0])
+        rates[domain]['cur_count'] = 1
+        rates[domain]['cur_size'] = len(pck[2])
+
+def rate_calculator(pck, domain):
+    add_to_rates(pck, domain)
+    add_to_rates(pck, 'ALL')
+        
+def print_rate_report(domain):
+    secs = len(rates[domain]['rate'].keys()) 
+    start_time = int(min(rates['ALL']['rate'].keys()))
+    end_time = int(max(rates['ALL']['rate'].keys()))
+    duration = end_time - start_time
+    counts = map(lambda x: x[0], rates[domain]['rate'].values())
+    sizes = map(lambda x: x[1], rates[domain]['rate'].values())
+
+    max_count_sec = max(counts)
+    max_size_sec = max(sizes)
+    avg_count_sec = sum(counts) * 1.0 / duration
+    avg_size_sec = sum(sizes) * 1.0 / duration
+
+    print 'Total amount of messages from %s : %s' % (domain, str(rates[domain]['count'])) 
+    print 'Total amont of secs during which we received something:', secs, '. Duration of listening: ', duration
+    print 'Max size per sec:', max_size_sec
+    print 'Max count per sec:', max_count_sec
+    print 'Avg size per sec:', avg_size_sec
+    print 'Avg count per sec:', avg_count_sec
+    print '========================================================'
+
 
 parser = argparse.ArgumentParser()
 parser.add_argument("file", help="File name of dump")
 args = parser.parse_args()
 
 data = []
-if '.json' in args.file:
-    import json
-    data = json.load(open(args.file))
-else:
-    for i in range(0,AMOUNT_OF_PACKS):
-        data+= pickle.load(open(args.file+str(i)+'.dat'))
-	print i, 'st file loaded: ', len(data)
-#    data = pickle.load(open(args.file))
+for i in range(0,AMOUNT_OF_PACKS+1):
+    cur_data = pickle.load(open(args.file+str(i)+'.dat'))
+    
+    for pck in cur_data:
+        data.append([pck[0], pck[1], pck[2][0]])
+        rate_calculator(pck, getDomain(pck[1]))
+    print i, 'st file loaded: ', len(data)
+        
+        
+print_rate_report('ALL')
 print '======================================================='
 printout("Total Packages: ", YELLOW)
 printout(str(len(data)), YELLOW)
 print
 print '--------------------------------------------------------'
-print 'First message came:', time.strftime('%d %b %Y %H:%M:%S', time.gmtime(data[0][0]))
-print 'Last message came:', time.strftime('%d %b %Y %H:%M:%S', time.gmtime(data[len(data)-1][0]))
+print 'First message came:', time.strftime('%d %b %Y %H:%M:%S', time.gmtime(pickle.load(open(args.file+'0.dat'))[0][0]))
+tmp = pickle.load(open(args.file+str(AMOUNT_OF_PACKS)+'.dat'))
+print 'Last message came:', time.strftime('%d %b %Y %H:%M:%S', time.gmtime(tmp[len(tmp)-1][0]))
 print "The distribution:"
 distr = {}
 for pck in data:
@@ -86,9 +133,9 @@ for pck in data:
 #pp(distr)
 pretty_print_distr(distr)
 
-import struct
-for pck in data:
-    length = struct.unpack('>cBHI', pck[2][0:8])[2]
-    if length != len(pck[2]):
-        print 'Expected: ', str(length),' Real: ',str(len(pck[2]) )
-        print pck
+#import struct
+#for pck in data:
+#    length = struct.unpack('>cBHI', pck[2][0:8])[2]
+#    if length != len(pck[2]):
+#        print 'Expected: ', str(length),' Real: ',str(len(pck[2]) )
+#        print pck

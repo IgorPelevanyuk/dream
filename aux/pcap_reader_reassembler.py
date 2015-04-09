@@ -1,7 +1,7 @@
 from scapy.all import *
 import pickle
 
-SRC_FILE = "/root/eu_fax_frags.cap"
+SRC_FILE = "/root/fax_eu_dump_II.cap"
 DST_FILE = "/root/pcap"
 
 def putToResults(pck_id):
