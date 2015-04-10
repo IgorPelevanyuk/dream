@@ -186,9 +186,64 @@ class XRDstreamProcessor(Processor):
             if (o_OPS.write != 0):
                 values['write_sigma'] = sqrt((o_SSQ.write - o_XFR.write ** 2 * 1.0 / o_OPS.write) / o_OPS.write)
         values['end_time'] = struct.unpack('>i', data[16:20])[0]
-        values['read_bytes_at_close'] = values['read_bytes']
+        log.debug(values)
+        toPrint = False
+        if 'read_bytes' in values:
+            values['read_bytes_at_close'] = values['read_bytes']
+        else:
+            values['read_bytes_at_close'] = values['read_single_bytes'] + values['read_vector_bytes']
+            toPrint = True 
         values['write_bytes_at_close'] = values['write_bytes']
         self.__updateMessageValue(header_CLS.fileID, values)
+#
+#
+# Test
+        def getUserInfo(u_data):
+            userInfo = {}
+            print 'udata', u_data
+            if '&' not in u_data:
+                client_name = u_data.split('@')[1]
+                userInfo['h'] = client_name
+                return userInfo
+            properties = u_data.split('&')
+            if '=' not in properties[0]:
+                properties.remove(properties[0])
+            for prop in properties:
+                key = prop.split('=')[0]
+                value = prop.split('=')[1]
+                userInfo[key] = value
+            for k, v in userInfo.items():
+                if v == '':
+                    del userInfo[k]
+            return userInfo
+
+        if toPrint:
+            server_name = getDNSfromIP(self.addr)
+            server_host = server_name.split('.')[0]
+            server_domain = server_name[len(server_host)+1:]
+            if 'user_full' in self.STORAGE[header_CLS.fileID] and '&' in self.STORAGE[header_CLS.fileID]['user_full']:
+                userInfo = getUserInfo(self.STORAGE[header_CLS.fileID]['user_full'])
+                print userInfo
+                if 'n' in userInfo:
+                    print 'server_username:', userInfo['n']
+                else:
+                    print 'server_username: n/a'
+                if 'o' in userInfo:
+                    print 'user_vo:',  userInfo['o']
+                else:
+                    print 'user_vo: n/a'
+                if 'h' in userInfo:
+                    client_name = userInfo['h']
+                    print 'client_host:', client_name.split('.')[0]
+                    print 'client_domain', client_name[len(client_name.split('.')[0])+1:]
+                else:
+                    print 'client_host n/a'
+                    print 'client_domain n/a'
+            print 'Server:', server_domain, server_host
+            print '============================================================'
+# End Test
+#
+#
         self.finalizeMessage(header_CLS.fileID)
         return current_byte
 
@@ -271,18 +326,50 @@ class XRDstreamProcessor(Processor):
     #                           Send functions
     ######################################################################
     def finalizeMessage(self, fileID):
+
+        def getUserInfo(u_data):
+            userInfo = {}
+            if '&' not in u_data:
+                client_hostname= u_data.split('@')[1]
+                userInfo['h'] = client_hostname
+                return userInfo
+            properties = u_data.split('&')
+            if '=' not in properties[0]:
+                properties.remove(properties[0])
+            for prop in properties:
+                key = prop.split('=')[0]
+                value = prop.split('=')[1]
+                userInfo[key] = value
+            for k, v in userInfo.items():
+                if v == '':
+                    del userInfo[k]
+            return userInfo
+
         values = {}
         server_name = getDNSfromIP(self.addr)
         values['server_host'] = server_name.split('.')[0]
         values['server_domain'] = server_name[len(values['server_host'])+1:]
         if 'site' in self.SERVER_INFO:
             values['server_site'] = self.SERVER_INFO['site']
-        if 'user_full' in self.STORAGE[fileID]:
+        if 'user_full' in self.STORAGE[fileID] and '&' in self.STORAGE[fileID]['user_full']:
             log.debug("User full: %s", self.STORAGE[fileID]['user_full'])
-            values['server_username'] = self.STORAGE[fileID]['user_full'].split('.')[0]
-            client_name = getDNSfromIP(self.STORAGE[fileID]['user_full'].split('@')[1])
-            values['client_host'] = client_name.split('.')[0]
-            values['client_domain'] = client_name[len(values['client_host'])+1:]
+           
+            userInfo = getUserInfo(self.STORAGE[fileID]['user_full'])
+            if 'n' in userInfo:
+                values['server_username'] = userInfo['n']
+            else:
+                values['server_username'] = 'n/a'
+            if 'o' in userInfo:
+                values['user_vo'] = userInfo['o']
+            else:
+                values['user_vo'] = 'n/a'
+            if 'h' in userInfo:
+                client_hostname = userInfo['h']
+                values['client_host'] = client_hostname.split('.')[0]
+                values['client_domain'] = client_hostname[len(values['client_host'])+1:]
+            else:
+                values['client_host'] = 'n/a'
+                values['client_domain'] = 'n/a'
         else:
             log.debug("USER ABSENT")        
         self.__updateMessageValue(fileID, values)
