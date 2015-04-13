@@ -99,10 +99,13 @@ def print_rate_report(domain):
 
 parser = argparse.ArgumentParser()
 parser.add_argument("file", help="File name of dump")
+parser.add_argument("count", help="Amount of fragments")
 args = parser.parse_args()
+args.count = int(args.count)
+
 
 data = []
-for i in range(0,AMOUNT_OF_PACKS+1):
+for i in range(0,args.count+1):
     cur_data = pickle.load(open(args.file+str(i)+'.dat'))
     
     for pck in cur_data:
@@ -118,7 +121,7 @@ printout(str(len(data)), YELLOW)
 print
 print '--------------------------------------------------------'
 print 'First message came:', time.strftime('%d %b %Y %H:%M:%S', time.gmtime(pickle.load(open(args.file+'0.dat'))[0][0]))
-tmp = pickle.load(open(args.file+str(AMOUNT_OF_PACKS)+'.dat'))
+tmp = pickle.load(open(args.file+str(args.count)+'.dat'))
 print 'Last message came:', time.strftime('%d %b %Y %H:%M:%S', time.gmtime(tmp[len(tmp)-1][0]))
 print "The distribution:"
 distr = {}
