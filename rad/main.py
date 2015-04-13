@@ -1,7 +1,11 @@
 import socket
+import argparse
+import pickle
+from pprint import pprint as pp
 from select import select 
 from decoder import XRDstreamDecoder
 from utils import getDomain
+
 
 import logging
 logger = logging.getLogger('newGled')     
@@ -15,6 +19,24 @@ log = logger
 domain = 'dashb-ai-631.cern.ch'
 port = int(5163)
 
+
+parser = argparse.ArgumentParser()
+parser.add_argument("file", help="File name of dump")
+parser.add_argument("count", help="Amount of fragments")
+args = parser.parse_args()
+args.count = int(args.count)
+
+
+data = []
+for i in range(0,args.count+1):
+    cur_data = pickle.load(open(args.file+str(i)+'.dat'))
+
+    for pck in cur_data:
+        data.append([pck[0], pck[1], pck[2][0]])
+        rate_calculator(pck, getDomain(pck[1]))
+    print i, 'st file loaded: ', len(data)
+
+
 class XRDStreamUDPListener():
     def __init__(self, domain, port):
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -22,19 +44,16 @@ class XRDStreamUDPListener():
 
     def run (self):
         decoder_inst = XRDstreamDecoder()
-        import pickle
-        data = pickle.load(file('/afs/cern.ch/user/i/ipelevan/pcap0.dat', 'r'))
         counter = 1
-        for packet in data:
-            counter += 1
-            msgs = decoder_inst.decode(packet[0], packet[1], packet[2])
-            #print packet[0], packet[2], packet[1]
-            from pprint import pprint as pp
-            #pp(msgs)
-            if counter % 1000 == 0:
-                print counter
-        print counter
-        pickle.dump(decoder_inst.uid, file('temp.dat', 'w'))
+        for i in range(0,args.count+1):
+            data = pickle.load(open(args.file+str(i)+'.dat'))
+            for packet in data:
+                counter += 1
+                msgs = decoder_inst.decode(packet[0], packet[1], packet[2])
+                #pp(msgs)
+                if counter % 10000 == 0:
+                    print counter
+        print 'Done! Processed:', counter
 
 def work():
     XRDStreamUDPListener(domain, port).run()
