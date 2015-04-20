@@ -132,7 +132,7 @@ class XRDstreamDecoder(Decoder):
             values['rvMin'] = o_OPS.rvMin
             values['rvMax'] = o_OPS.rvMax
             values['wrMin'] = o_OPS.wrMin
-            values['wrMax'] =o_OPS.wrMax
+            values['wrMax'] = o_OPS.wrMax
 
             current_byte += 48
             log.debug('Ops Read: %s, Readv: %s, Write: %s', o_OPS.read, o_OPS.readv, o_OPS.write)
@@ -315,18 +315,10 @@ class XRDstreamDecoder(Decoder):
             self.codes[code] = self.codes.get(code, 0) + 1
 
     def read_OPEN(self, data, header):
-        mon_message = Unpack(XROOTD_MON_OPEN, data)
         log.debug('XROOTD_MON_OPEN')
-        log.debug('Code: %s' % struct.unpack('!B', data[0]))
-        log.debug('FileSize:')
-        bin_data = []
-        for j in range(1, 8):
-            bin_data.append(struct.unpack('>B', data[j])[0])
-        log.debug(str(bin_data))
-        log.debug('Reserved: %s' % struct.unpack('!I', data[8:12]))
-        log.debug('Dictid: %s' % struct.unpack('!I', data[12:16]))
-
-        log.debug('dictid: %s' % mon_message.dictid)
+        values = {'recType':'tOPEN'}
+        mon_message = Unpack(XROOTD_MON_OPEN, data)
+        
 
     def read_APPID(self, data, header):
         mon_message = Unpack(XROOTD_MON_APPID, data)
