@@ -1,6 +1,7 @@
 import socket
 import argparse
 import pickle
+import time
 from pprint import pprint as pp
 from select import select 
 from decoder import XRDstreamDecoder
@@ -26,34 +27,38 @@ parser.add_argument("count", help="Amount of fragments")
 args = parser.parse_args()
 args.count = int(args.count)
 
-
-data = []
-for i in range(0,args.count+1):
-    cur_data = pickle.load(open(args.file+str(i)+'.dat'))
-
-    for pck in cur_data:
-        data.append([pck[0], pck[1], pck[2][0]])
-        rate_calculator(pck, getDomain(pck[1]))
-    print i, 'st file loaded: ', len(data)
-
-
 class XRDStreamUDPListener():
     def __init__(self, domain, port):
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self.msgs = []
+        self.elapsed_time_read = 0
+        self.elapsed_time_write = 0
+        self.elapsed_time_process = 0
 
 
     def run (self):
         decoder_inst = XRDstreamDecoder()
-        counter = 1
+        counter = 0
         for i in range(0,args.count+1):
+            start_time = time.time()
             data = pickle.load(open(args.file+str(i)+'.dat'))
+            self.elapsed_time_read += time.time() - start_time
+            start_time = time.time()
             for packet in data:
                 counter += 1
                 msgs = decoder_inst.decode(packet[0], packet[1], packet[2])
-                #pp(msgs)
+                if msgs != []: 
+                    self.msgs.append(len(str(msgs)))
+#                    self.msgs.append('i')
                 if counter % 10000 == 0:
                     print counter
+            self.elapsed_time_process += time.time() - start_time
+        pp(decoder_inst.codes)
         print 'Done! Processed:', counter
+        print 'Decoded:', len(self.msgs)
+        print 'Time to read file:', self.elapsed_time_read
+        print 'Time to process file:', self.elapsed_time_process
+        print 'Total size of result(MB):', sum(self.msgs)*1.0/1000000
 
 def work():
     XRDStreamUDPListener(domain, port).run()

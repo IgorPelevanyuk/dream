@@ -10,7 +10,7 @@ hdlr = logging.FileHandler('msg.log')
 formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
 hdlr.setFormatter(formatter)                                          
 logger.addHandler(hdlr)                                               
-logger.setLevel(logging.WARNING)                                        
+logger.setLevel(logging.DEBUG)                                        
 log = logger
 
 domain = 'dashb-ai-631.cern.ch'
@@ -40,7 +40,7 @@ class XRDStreamUDPListener():
         # log.info('exit XRDStreamUDPListener')
 
         import pickle
-        data = pickle.load(file('/root/days/Dec01.dat', 'r'))
+        data = pickle.load(file('/afs/cern.ch/work/i/ipelevan/very_big_fax_dump/nipne.dat', 'r'))
         counter = 1
         for packet in data:
             counter += 1

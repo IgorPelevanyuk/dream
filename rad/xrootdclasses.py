@@ -75,3 +75,43 @@ class XrdXrootdMonStatSSQ(BigEndianStructure):  #32b
                 ("readv", c_int64),
                 ("rsegs", c_int64),
                 ("write", c_int64)]
+
+######################################################################
+#                      T-Stream Specific Structures
+######################################################################
+class XROOTD_MON_OPEN(BigEndianStructure):
+    _fields_ = [("id", c_ubyte * 8),
+                ("notused", c_uint32),
+                ("dictid", c_uint32)]
+
+class XROOTD_MON_APPID(BigEndianStructure):
+    _fields_ = [("id", c_ubyte * 8)]
+
+class XROOTD_MON_CLOSE(BigEndianStructure):
+    _fields_ = [("id", c_ubyte * 4),
+                ("rTot", c_uint32),
+                ("wTot", c_uint32),
+                ("dictid", c_uint32)]
+
+class XROOTD_MON_DISC(BigEndianStructure):
+    _fields_ = [("id", c_ubyte * 8),
+                ("buflen", c_int32),
+                ("dictid", c_uint32)]
+
+class XROOTD_MON_WINDOW(BigEndianStructure):
+    _fields_ = [("id", c_ubyte * 8),
+                ("prev_ended", c_int32),
+                ("this_started", c_int32)]
+
+class XROOTD_RW_REQUEST(BigEndianStructure):
+    _fields_ = [("val", c_uint64),
+                ("buflen", c_int32),
+                ("dictid", c_uint32)]
+
+class XROOTD_MON_READV(BigEndianStructure):
+    _fields_ = [("val", c_ubyte),
+                ("vector", c_ubyte),
+                ("sval", c_int16),
+                ("rtot", c_uint32),
+                ("buflen", c_int32),
+                ("dictid", c_uint32)]
