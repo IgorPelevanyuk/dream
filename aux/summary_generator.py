@@ -39,13 +39,13 @@ def process_data(data):
 
 
 parser = argparse.ArgumentParser()
-parser.add_argument("file", help="File name of dumped messages", nargs='+')
+parser.add_argument("file", help="File name of dumped messages")
 args = parser.parse_args()
 print args.file
 
 data = []
-for file in args.file:
-    data = pickle.load(open(file))
+for file in [args.file]:
+    data = pickle.load(open(file, 'r'))
     process_data(data)
 
 
