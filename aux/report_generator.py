@@ -6,8 +6,6 @@ import sys
 import time
 import operator
 
-AMOUNT_OF_PACKS = 38 
-
 BLACK, RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, WHITE = range(8)
 
 #following from Python cookbook, #475186
@@ -104,38 +102,34 @@ args = parser.parse_args()
 args.count = int(args.count)
 
 
-data = []
+distr = {}
+count = 0
 for i in range(0,args.count+1):
     cur_data = pickle.load(open(args.file+str(i)+'.dat'))
-    
     for pck in cur_data:
-        data.append([pck[0], pck[1], pck[2][0]])
-        rate_calculator(pck, getDomain(pck[1]))
-    print i, 'st file loaded: ', len(data)
+        domain = getDomain(pck[1])
+        if domain not in distr:
+            distr[domain] = {}
+        if pck[2][0] not in distr[domain]:
+            distr[domain][pck[2][0]] = 0
+        distr[domain][pck[2][0]] += 1
+        rate_calculator(pck, domain)
+        count += 1
+    print i, 'st file loaded: ', count
         
         
 print_rate_report('ALL')
 print '======================================================='
 printout("Total Packages: ", YELLOW)
-printout(str(len(data)), YELLOW)
+printout(str(count), YELLOW)
 print
 print '--------------------------------------------------------'
 print 'First message came:', time.strftime('%d %b %Y %H:%M:%S', time.gmtime(pickle.load(open(args.file+'0.dat'))[0][0]))
 tmp = pickle.load(open(args.file+str(args.count)+'.dat'))
 print 'Last message came:', time.strftime('%d %b %Y %H:%M:%S', time.gmtime(tmp[len(tmp)-1][0]))
 print "The distribution:"
-distr = {}
-for pck in data:
-    domain = getDomain(pck[1])
-    if domain not in distr:
-        distr[domain] = {}
-    if pck[2][0] not in distr[domain]:
-        distr[domain][pck[2][0]] = 0
-    distr[domain][pck[2][0]] += 1
 
-#pp(distr)
 pretty_print_distr(distr)
-
 #import struct
 #for pck in data:
 #    length = struct.unpack('>cBHI', pck[2][0:8])[2]
